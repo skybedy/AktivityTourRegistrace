@@ -5,10 +5,14 @@ class AktivityTourRegistrace{
         private $rok_zavodu;
         private $id_zavodu;
         private $podzavod = Array();
+        private $vseobecne_podminky_url;
+        private $pravidla_podminky_url;
         
         public function __construct($udaje_zavodu,$udaje_podzavodu){
             $this->rok_zavodu = $udaje_zavodu['rok_zavodu'];
             $this->id_zavodu = $udaje_zavodu['id_zavodu'];
+            $this->vseobecne_podminky_url = $udaje_zavodu['vseobecne_podminky']; 
+            $this->pravidla_podminky_url = $udaje_zavodu['pravidla_podminky']; 
             $i = 1;
             foreach($udaje_podzavodu AS $val){
                 $this->podzavod[$i]['typ_prihlasky'] = $val['typ_prihlasky'];
@@ -146,8 +150,8 @@ class AktivityTourRegistrace{
             
             $str .= '<hr>';
             $str .= '<div class="checkbox"><label><input type="checkbox" name="souhlas_osobni_udaje" class="required" /> Souhlasím s poskytnutím osobních údajů pro potřeby této registrace</label></div>';
-            $str .= '<div class="checkbox"><label><input type="checkbox" name="souhlas_vseobecne_podminky" class="required" /> Souhlasím se všeobecnými podmínkami, ke stažení <a target="_blank" href="<?php echo $vseobecne_podminky ?>">ZDE</a></label></div>';
-            $str .= '<div class="checkbox"><label><input type="checkbox" name="souhlas_podminky_zavodu" class="required" /> Souhlasím s pravidly a podmínkami, ke stažení <a target="_blank"  href="<?php echo $pravidla_podminky ?>">ZDE</a></label></div>';
+            $str .= '<div class="checkbox"><label><input type="checkbox" name="souhlas_vseobecne_podminky" class="required" /> Souhlasím se všeobecnými podmínkami, ke stažení <a target="_blank" href="'.$this->vseobecne_podminky_url.'">ZDE</a></label></div>';
+            $str .= '<div class="checkbox"><label><input type="checkbox" name="souhlas_podminky_zavodu" class="required" /> Souhlasím s pravidly a podmínkami, ke stažení <a target="_blank"  href="'.$this->pravidla_podminky_url.'">ZDE</a></label></div>';
             $str .= '<hr>';
             $str .= '<div class="checkbox"><label><input type="checkbox" name="" class="required" /> ONLINE platba kartou</label></div>';
             $str .= '<div class="checkbox"><label><input type="checkbox" name="" class="required" /> Zaplatit bankovním převodem</label></div>';
@@ -233,7 +237,7 @@ class AktivityTourRegistrace{
            // $str .= '<h2>Výběr závodu</h2>';
             $str .= '<div class="form-group">';
             $str .= '<label for="id_zavodu">Vyberte závod<span class="povinné"> *</span></label>';
-            $str .= '<select class="form-control" id="vyber_zavodu" onchange="window.location = \'https://www.aktivitytour.cz/registrace-winter-hei-run-2?action=vyber_podzavodu&poradi_podzavodu=\'+this.options[this.selectedIndex].value+\'\';" name="vyber_zavodu">';
+            $str .= '<select class="form-control input-lg" id="vyber_zavodu" onchange="window.location = \'https://www.aktivitytour.cz/registrace-winter-hei-run-2?action=vyber_podzavodu&poradi_podzavodu=\'+this.options[this.selectedIndex].value+\'\';" name="vyber_zavodu">';
             $str .= '<option  value="" selected disabled>Vyberte, který se závodů chcete absolvovat</option>';
             $i = 1;
             foreach($apidata->podzavody as $data){
