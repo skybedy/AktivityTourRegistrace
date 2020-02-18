@@ -4,10 +4,17 @@
 class AktivityTourRegistrace{
         private $rok_zavodu;
         private $id_zavodu;
+        private $podzavod = Array();
         
-        public function __construct($rok_zavodu,$id_zavodu){
-            $this->rok_zavodu = $rok_zavodu;
-            $this->id_zavodu = $id_zavodu;
+        public function __construct($udaje_zavodu,$udaje_podzavodu){
+            $this->rok_zavodu = $udaje_zavodu['rok_zavodu'];
+            $this->id_zavodu = $udaje_zavodu['id_zavodu'];
+            $i = 1;
+            foreach($udaje_podzavodu AS $val){
+                $this->podzavod[$i]['typ_prihlasky'] = $val['typ_prihlasky'];
+                $this->podzavod[$i]['tricka'] = $val['tricka'];
+                $i++;
+            }
             $this->Apidata();
             $this->Router();
         }
@@ -19,14 +26,11 @@ class AktivityTourRegistrace{
                 switch($_GET['action']){
                     case 'vyber_podzavodu':
                         $str .= $this->VyberPodzavodu($_SESSION['apidata']);
-                        if($_GET['poradi_podzavodu'] == 1){
-                            $str .= $this->FormularJednotlivci($_SESSION['apidata'],true);
+                        if($this->podzavod[$_GET['poradi_podzavodu']]['typ_prihlasky'] == 1){
+                            $str .= $this->FormularJednotlivci($_SESSION['apidata'],$this->podzavod[$_GET['poradi_podzavodu']]['tricka'],$this->podzavod[$_GET['poradi_podzavodu']]['vlny']);
                         }
-                        elseif($_GET['poradi_podzavodu'] == 2){
+                        elseif($this->podzavod[$_GET['poradi_podzavodu']]['typ_prihlasky'] == 2){
                             $str .= $this->FormularTymy($_SESSION['apidata']);
-                        }
-                        elseif($_GET['poradi_podzavodu'] == 3){
-                            $str .= $this->FormularJednotlivci($_SESSION['apidata'],false);
                         }
                     break;
                     case 'odeslat_prihlasku' :
@@ -68,19 +72,7 @@ class AktivityTourRegistrace{
             echo $str;
         }
         
-        
-        
-
-        
-      
-      
-      
-      
-
-        
-        
-        
-        private function FormularJednotlivci($apidata,$tricka){
+        private function FormularJednotlivci($apidata,$tricka,$vlny){
             $str = "";
             $str .= '<form action="https://www.aktivitytour.cz'.parse_url($_SERVER["REQUEST_URI"],PHP_URL_PATH).'?action=odeslat_prihlasku" id="registration_form" method="post">';
             $str .= '<input type="hidden" name="typ_prihlasky" value="1" />';
@@ -109,7 +101,7 @@ class AktivityTourRegistrace{
             $str .= '<label for="rok_narozeni">Rok narození / Birth Year<span class="red"> *</span></label>';
             $str .= '<select name="rok_narozeni" class="form-control required placeholder">';
             $str .= '<option value="" selected disabled>Rok narození / Year of birth</option>';
-            for($j=1920;$j<=2019;$j++){
+            for($j=1921;$j<=2019;$j++){
                 $str .= '<option value="'.$j.'" '.((isset($udaje['rok_narozeni']) && $udaje['rok_narozeni'] == $j) ? 'selected="selected"' : '').'>'.$j.'</option>';
             } 
             $str .= '</select>';
@@ -136,20 +128,30 @@ class AktivityTourRegistrace{
             $str .= '</div></div></div>';
             
             $str .= '<div class="row"><div class="col-md-6"><div class="form-group">';
-            $str .= '<label for="phone1">Tričko<span class="red"> *</span></label>';
-            $str.= $this->VyberTricek(1,null);
-            $str .= '</div></div>';
-
-            $str .= '<div class="col-md-6"><div class="form-group">';
-            $str .= '<label for="email">Stát<span class="red"> *</span></label>';
+            $str .= '<label for="">Stát<span class="red"> *</span></label>';
             $str .= $this->SeznamStatu(1,null);
-
-            $str .= '</div></div></div>';
-            /*
+            $str .= '</div></div>';
             if($tricka){
-                $str.= $this->VyberTricek(1,null);
+                $str .= '<div class="col-md-6"><div class="form-group">';
+                $str .= '<label for="email">Tričko<span class="red"> *</span></label>';
+                $str.= $this->VyberTricek($this->podzavod[$_GET['poradi_podzavodu']]['typ_prihlasky'], null);
+                $str .= '</div></div>';
             }
-            $str .= $this->VyberVlny($apidata->vlny,1);*/
+            $str .= '</div>';
+            
+            if($vlny){
+                //je třeba dodělat
+                $str .= $this->VyberVlny($apidata->vlny,$typ_prihlasky);            
+            }
+            
+            $str .= '<hr>';
+            $str .= '<div class="checkbox"><label><input type="checkbox" name="souhlas_osobni_udaje" class="required" /> Souhlasím s poskytnutím osobních údajů pro potřeby této registrace</label></div>';
+            $str .= '<div class="checkbox"><label><input type="checkbox" name="souhlas_vseobecne_podminky" class="required" /> Souhlasím se všeobecnými podmínkami, ke stažení <a target="_blank" href="<?php echo $vseobecne_podminky ?>">ZDE</a></label></div>';
+            $str .= '<div class="checkbox"><label><input type="checkbox" name="souhlas_podminky_zavodu" class="required" /> Souhlasím s pravidly a podmínkami, ke stažení <a target="_blank"  href="<?php echo $pravidla_podminky ?>">ZDE</a></label></div>';
+            $str .= '<hr>';
+            $str .= '<div class="checkbox"><label><input type="checkbox" name="" class="required" /> ONLINE platba kartou</label></div>';
+            $str .= '<div class="checkbox"><label><input type="checkbox" name="" class="required" /> Zaplatit bankovním převodem</label></div>';
+            $str .= '<hr>';
             $str .= '<div class="form-group">';
             $str .= '<label for="vzkaz">Vzkaz pořadateli<span class="red"> *</span></label>';
             $str .= '<textarea placeholder="Vzkaz pořadateli, máte-li nějaký / Message for the organizer" class="form-control" name="vzkaz" cols="40" rows="5"></textarea>';
@@ -365,13 +367,5 @@ class AktivityTourRegistrace{
               }
             return $str;
           }
-          
-
-        
-        
-    
-  }   
-    
-    new AktivityTourRegistrace(2020,11);
-        
+  }         
 ?>
